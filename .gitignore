@@ -1,0 +1,16 @@
+# Arduino build output
+build/
+*.hex
+*.elf
+
+# Blender backup and autosave files
+*.blend1
+*.blend2
+*.blend@
+
+# Local calibration exports
+calibration/*.local.csv
+
+# OS files
+Thumbs.db
+.DS_Store
