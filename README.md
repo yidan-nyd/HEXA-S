@@ -6,9 +6,6 @@
 
 HEXA-S is a smart-textile data visualization prototype. Stretch sensors sewn or embroidered into the textile change resistance as the material deforms. An Arduino reads each sensing point through voltage-divider circuits and an analog multiplexer, then sends the data to Blender over USB serial. Objects in the Blender scene deform in real time to visualize relative stretch across different areas of the textile.
 
-> [!IMPORTANT]
-> This project is a research and design prototype. Uncalibrated conductive thread or stretch sensors indicate relative deformation trends only. Their output must not be interpreted directly as an accurate residual-limb volume, pressure measurement, or clinical diagnosis. Medical use requires independent sensor calibration, repeatability studies, risk assessment, and regulatory validation.
-
 ## 1. System, Hardware, and Languages
 
 ### Software Environment
@@ -24,8 +21,6 @@ HEXA-S is a smart-textile data visualization prototype. Stretch sensors sewn or 
 | Blender extension language | Python |
 | Data format | BlendixSerial CSV Fixed at 115200 baud |
 
-The starter firmware in this repository generates the documented BlendixSerial CSV format directly, so it does not require an Arduino-side library. Projects that need the binary protocol or bidirectional communication can use the official [blendixserial-arduino](https://github.com/electronicstree/blendixserial-arduino) library and select the matching Data Format in Blender.
-
 ### Hardware List
 
 | Hardware | Quantity | Purpose |
@@ -39,7 +34,7 @@ The starter firmware in this repository generates the documented BlendixSerial C
 | Jumper wires, leads, and strain-relief parts | As required | Electrical connection and mechanical protection |
 | Textile substrate and conductive/embroidery thread | Design dependent | Build the wearable sensing structure |
 
-Do not copy the fixed-resistor value from a concept diagram. Measure each sensor with a multimeter at rest and at its intended maximum extension. Select a resistor in the same order of magnitude as the middle of that working range, then validate the resulting ADC range.
+Do not copy the fixed-resistor value from a concept diagram. Measure each sensor with a multimeter at rest and at its intended maximum extension, then select a resistor in the same order of magnitude as the middle of that working range.
 
 ## 2. Architecture and Features
 
@@ -63,19 +58,6 @@ flowchart LR
 - Converts each channel into the Scale Z value of one Blender object and updates at approximately 20 Hz.
 - Includes a raw ADC output mode for collecting calibration values.
 
-### Repository Structure
-
-```text
-HEXA-S/
-├── README.md
-├── README.zh.md
-└── firmware/
-    └── hexa_s_visualizer/
-        └── hexa_s_visualizer.ino
-```
-
-Project-specific `.blend` files, textile patterns, calibration records, and circuit diagrams can be placed in `blender/`, `textile/`, `calibration/`, and `docs/`. Check the license before uploading third-party Blender models, extensions, images, or other assets.
-
 ## 3. Hardware Connection and Assembly
 
 ### Arduino Mega to CD74HC4067
@@ -90,16 +72,6 @@ Project-specific `.blend` files, textile patterns, calibration records, and circ
 | S3 | D5 | Channel-select bit 3 |
 | SIG / COM | A0 | Arduino analog input |
 | EN | GND | Active-low enable; connect to a digital pin instead if software control is required |
-
-### Sensor Channel
-
-```text
-5V ── stretch sensor ──●── fixed resistor ── GND
-                        │
-                    CD74HC4067 Cn
-```
-
-`Cn` is one of `C0–C15`. Swapping the sensor and fixed resistor reverses the direction of the ADC response. Set the corresponding entry in the firmware's `INVERT[]` array when a channel changes in the opposite direction.
 
 ### Assembly Sequence
 
@@ -149,8 +121,6 @@ The textile, mounting method, temperature, humidity, and repeated loading can al
 5. Use **Add Object** to add the six objects in `C0–C5` order. Enable only **Scale Z** in each object's receive settings.
 6. Choose an Update Scene interval suitable for the computer, then click **Start**. Stretching an area of the textile should change the Z scale of its mapped 3D object.
 
-The BlendixSerial documentation does not specify a hard object limit, but its published testing covers 10 objects. When increasing the system to 16 or more sensing points, add objects gradually while monitoring latency, dropped updates, and CPU use. Reduce `FRAME_RATE_HZ`, increase the Update Scene interval, or simplify the Blender scene when necessary.
-
 ## 6. Serial Data Mapping
 
 The firmware writes nine values per sensor in the BlendixSerial CSV Fixed layout:
@@ -168,7 +138,7 @@ This implementation changes only the ninth value, `Scale Z`. Transform blocks fo
 0,0,0,0,0,0,1,1,1.375;
 ```
 
-The Blender object order, sensor channel order, and physical textile locations must share one mapping. A future `calibration/channel-map.csv` should record the channel, physical position, sensor identifier, and calibration values.
+The Blender object order, sensor channel order, and physical textile locations must use the same mapping table.
 
 ## 7. Functional Validation
 
