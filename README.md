@@ -1,177 +1,129 @@
-# HEXA-S · Smart Textile Stretch Data Visualization Module
+[English](README.md) | [中文](README.zh.md)
 
-[English Tutorial](README.md) | [中文教程](README.zh.md)
+# HEXA-S
 
-**Adaptive Smart Textile Care**
+## A smart-textile system that turns residual-limb change into fitting evidence
 
-HEXA-S is a smart-textile data visualization prototype. Stretch sensors sewn or embroidered into the textile change resistance as the material deforms. An Arduino reads each sensing point through voltage-divider circuits and an analog multiplexer, then sends the data to Blender over USB serial. Objects in the Blender scene deform in real time to visualize relative stretch across different areas of the textile.
+HEXA-S connects flexible stretch sensors, wearable textiles, real-time data processing, and 3D mapping. It records how a residual limb changes through the day and gives prosthetists time-based evidence beyond a single static scan.
 
-## 1. System, Hardware, and Languages
+> **Core loop: Sense → Calibrate → Visualise → Compare → Interpret → Recommend → Human decision → Record outcome**
 
-### Software Environment
+[Portfolio case study](docs/portfolio-case-study.md) · [Technical implementation guide](docs/technical/implementation-guide.md) · [Capability map](docs/product/capability-map.md)
 
-| Item | Description |
+> **Hero asset needed:** show the worn HEXA-S sleeve, its sensing structure, and the live 3D model in one authentic prototype scene.
+
+## Project overview
+
+| Item | Detail |
 | --- | --- |
-| Development computer | Windows 10 |
-| Embedded development | Arduino IDE with Arduino AVR Boards |
-| Controller | Arduino Mega 2560 |
-| 3D visualization | Blender; Blender 4.2 or later is recommended for the current extension installation workflow |
-| Serial interface | [blendixserial Blender extension](https://electronicstree.com/blendixserial-addon/) |
-| Firmware language | Arduino C/C++ |
-| Blender extension language | Python |
-| Data format | BlendixSerial CSV Fixed at 115200 baud |
+| Field | Smart textiles, wearable sensing, prosthetic fitting, healthcare systems |
+| Core problem | A single 3D scan cannot represent residual-limb volume change throughout the day |
+| Team | Yidan Nai and Neil Barnabas, University of the Arts London |
+| Technology | Embroidered stretch sensors, Arduino Mega, CD74HC4067, serial data, Blender / Grasshopper, TPU 3D printing |
+| Current state | Multi-channel textile sensing and live 3D visualisation demonstrated; long-term wear, real-user use, and clinical decision value remain to be validated |
 
-### Hardware List
+## Why HEXA-S
 
-| Hardware | Quantity | Purpose |
-| --- | ---: | --- |
-| Arduino Mega 2560 | 1 | Reads sensors and sends serial data |
-| CD74HC4067 16-channel analog multiplexer | 1 | Reads multiple sensors through one analog input |
-| Stretch sensors or conductive-thread sensing elements | 6 or more | Detect textile extension and recovery |
-| Fixed resistors | 1 per channel | Form voltage dividers with the sensors |
-| Breadboard or solderable prototyping board | 1 | Prototype or secure the circuit |
-| USB data cable | 1 | Firmware upload, power, and serial communication |
-| Jumper wires, leads, and strain-relief parts | As required | Electrical connection and mechanical protection |
-| Textile substrate and conductive/embroidery thread | Design dependent | Build the wearable sensing structure |
+Prosthetic sockets are commonly made from measurements captured at one moment, while residual limbs change with activity, temperature, fluid levels, and time. A precise static scan can therefore miss the patterns that make a socket feel tight later in the day, loose in the evening, or uncomfortable in a specific area.
 
-Do not copy the fixed-resistor value from a concept diagram. Measure each sensor with a multimeter at rest and at its intended maximum extension, then select a resistor in the same order of magnitude as the middle of that working range.
+HEXA-S does not claim to diagnose or autonomously modify a prosthesis. It turns otherwise invisible and difficult-to-describe change into evidence that can be reviewed and discussed:
 
-## 2. Architecture and Features
+1. **Sense change:** flexible sensors embroidered into the textile record local stretch and recovery.
+2. **Create comparable data:** per-channel calibration, normalisation, and filtering transform raw resistance into relative deformation.
+3. **Map change in space:** each sensing region corresponds to a defined area of a 3D model.
+4. **Identify patterns over time:** future development can compare periods, activities, and wearing conditions.
+5. **Support professional judgement:** the prosthetist combines sensor evidence with symptoms and clinical examination.
+6. **Record outcomes:** comfort, skin condition, and post-adjustment change feed the next review.
+
+## Where the current process breaks
+
+| Method | Spatial information | Time information | Daily context | Decision support |
+| --- | --- | --- | --- | --- |
+| One-off 3D scan | Strong | None | Weak | Represents one moment |
+| Manual circumference | Coarse | Requires repeat visits | Weak | Poor local detail |
+| User description | Subjective | Recalled | Strong | Hard to locate precisely |
+| HEXA-S goal | Multi-region relative change | Continuous trends | Can link activity and time | Supporting evidence, interpreted by people |
+
+## Evidence-to-decision workflow
 
 ```mermaid
 flowchart LR
-    A[Textile stretch] --> B[Sensor resistance change]
-    B --> C[Voltage divider]
-    C --> D[CD74HC4067 channel selection]
-    D --> E[Arduino Mega ADC]
-    E --> F[Calibration, normalization, and filtering]
-    F --> G[USB serial / CSV]
-    G --> H[BlendixSerial]
-    H --> I[Blender 3D object deformation]
+    A[Flexible sensor capture] --> B[Relative residual-limb change]
+    B --> C[Calibration, filtering, quality checks]
+    C --> D[Live 3D visualisation]
+    D --> E[Trends and changing regions over time]
+    E --> F{Is the evidence reliable and actionable?}
+    F -->|Expected variation| G[Continue observing]
+    F -->|Meaningful change| H[Explain and recommend review]
+    F -->|Drift, disconnect, insufficient evidence| I[Show limitation and recollect]
+    H --> J[User and clinician decide together]
+    J --> K[Sock, socket, or interface response]
+    K --> L[Comfort, skin, and fitting outcome]
+    L --> E
 ```
 
-### Starter Implementation
+> Sensing through live visualisation is supported by the current prototype. Long-term interpretation, fitting recommendations, and the outcome loop are designed or future capabilities.
 
-- Polls six CD74HC4067 sensor channels; the code can be extended to all 16 channels.
-- Averages several ADC samples and applies an exponential moving average to reduce jitter.
-- Normalizes every channel to `0.0–1.0` using its own measured minimum and maximum.
-- Converts each channel into the Scale Z value of one Blender object and updates at approximately 20 Hz.
-- Includes a raw ADC output mode for collecting calibration values.
+## Capability maturity
 
-## 3. Hardware Connection and Assembly
+| Status | Capability |
+| --- | --- |
+| **Demonstrated** | Flexible-sensor response; multi-channel acquisition; per-channel calibration, normalisation, and filtering; USB serial transmission; live Blender deformation |
+| **Designed** | Data-quality states; timelines; regional comparison; symptom logging; evidence summaries and shared decision flow |
+| **Future** | Long-term pattern recognition; separation of expected variation and health risk; explainable fitting recommendations; real-user validation; responsive TPU interface concepts |
 
-### Arduino Mega to CD74HC4067
+See the full [capability map](docs/product/capability-map.md).
 
-| CD74HC4067 | Arduino Mega | Description |
+## If AI is introduced
+
+AI should not replace a prosthetist. Its role is to help people find patterns in long-running, multi-channel data:
+
+- find repeated changes across hours or days instead of treating one peak as risk;
+- distinguish bodily change, ordinary activity, and sensor drift;
+- explain outputs using location, time, magnitude, duration, and data quality;
+- translate predictions into graded actions: keep observing, add context, or seek professional review;
+- preserve the user's and clinician's ability to confirm, change, reject, or take over.
+
+Any health-risk output must remain decision support, not a diagnosis or an instruction to alter the socket automatically. See [clinical AI collaboration principles](design-assets/ai-patterns/clinical-decision-principles.md).
+
+## Prototype evidence
+
+The repository currently supports:
+
+- polling six CD74HC4067 channels, extendable to sixteen;
+- repeated ADC sampling and exponential moving-average filtering;
+- independent `0.0–1.0` normalisation for each sensor;
+- BlendixSerial CSV Fixed output at about 20 Hz;
+- mapping channels to the `Scale Z` value of Blender objects;
+- raw ADC mode for calibration.
+
+It does **not** yet prove clinical dimensional accuracy, long-term wear reliability, diagnosis, clinically validated fitting recommendations, or automatic control of an adaptive structure.
+
+## Validation priorities
+
+1. **Sensor reliability:** repeatability, hysteresis, drift, environment, washing, and donning.
+2. **Spatial and geometric validity:** whether relative resistance consistently corresponds to location and physical change.
+3. **Wear experience:** comfort, pressure, wiring, movement, and durability.
+4. **Clinical usefulness:** whether the evidence improves judgement rather than adding noise and alerts.
+
+See the [validation scorecard](design-assets/evaluation/validation-scorecard.md) and [evidence still needed](docs/materials-needed.md).
+
+## Roadmap
+
+| Stage | Goal | Main validation |
 | --- | --- | --- |
-| VCC | 5V | Multiplexer supply; confirm the voltage rating of the actual module |
-| GND | GND | Common ground |
-| S0 | D2 | Channel-select bit 0 |
-| S1 | D3 | Channel-select bit 1 |
-| S2 | D4 | Channel-select bit 2 |
-| S3 | D5 | Channel-select bit 3 |
-| SIG / COM | A0 | Arduino analog input |
-| EN | GND | Active-low enable; connect to a digital pin instead if software control is required |
+| **Sense** | Capture relative change across textile regions | Repeatability, hysteresis, drift, crosstalk |
+| **Map** | Present the data as understandable 3D space | Region mapping, latency, readability |
+| **Understand** | Identify and explain time-based patterns | False alerts, confidence recovery, comprehension |
+| **Decide** | Support shared next-step decisions | Clinical usefulness, consistency, human takeover |
+| **Adapt** | Explore adjustable or replaceable interfaces | Safety, comfort, and real-world outcome |
 
-### Assembly Sequence
+## Build and reproduce
 
-1. With power disconnected, build one sensor and one voltage divider on a breadboard.
-2. Check for a short between 5V and GND. Power the board and verify that the A0 reading changes when the sensor is stretched.
-3. Connect the CD74HC4067 and validate `C0` before adding the remaining channels one at a time.
-4. Attach the sensing elements to the intended textile areas. Add strain relief where flexible textile meets rigid wire so tension is not concentrated at solder joints.
-5. Secure the wiring while preserving the intended movement of the textile. Keep conductive paths from touching one another.
-6. Connect USB only after the wiring has been inspected, then calibrate every channel and test the Blender mapping.
+- [Technical implementation guide](docs/technical/implementation-guide.md)
+- [中文技术实现与复现指南](docs/technical/implementation-guide.zh.md)
+- [Arduino firmware](firmware/hexa_s_visualizer/hexa_s_visualizer.ino)
 
-## 4. Firmware Upload and Sensor Calibration
+## Project boundary
 
-### 4.1 Upload the Firmware
-
-1. Install the [Arduino IDE](https://www.arduino.cc/en/software).
-2. Open `firmware/hexa_s_visualizer/hexa_s_visualizer.ino`.
-3. Under **Tools → Board**, choose **Arduino Mega or Mega 2560** and select the **ATmega2560** processor.
-4. Connect the board with a USB data cable. Find its port in Windows Device Manager and select the same `COM` port under **Tools → Port**.
-5. Check the pin constants, `SENSOR_COUNT`, and baud rate at the top of the sketch, then click **Upload**.
-
-### 4.2 Calibrate Every Channel
-
-1. Change `CALIBRATION_MODE` to `true` and upload the firmware again.
-2. Open Arduino Serial Monitor at `115200 baud`.
-3. Record stable readings for every channel with the textile at rest. Repeat at the largest extension allowed by the design.
-4. Add a small margin and enter the results in `CAL_MIN[]` and `CAL_MAX[]`. If the normalized direction is reversed, set that channel's `INVERT[]` entry to `true`.
-5. Change `CALIBRATION_MODE` back to `false` and upload again.
-6. Close Serial Monitor. Blender and Serial Monitor normally cannot use the same COM port simultaneously.
-
-The textile, mounting method, temperature, humidity, and repeated loading can all cause baseline drift. Keep a separate calibration record for each sample and recalibrate after resewing or replacing a sensing element.
-
-## 5. Blender Tutorial
-
-### 5.1 Install BlendixSerial
-
-1. Download the ZIP package from the [BlendixSerial extension page](https://electronicstree.com/blendixserial-addon/).
-2. In Blender, open **Edit → Preferences → Get Extensions**.
-3. Open the menu in the upper-right corner, choose **Install from Disk**, and select the ZIP file.
-4. Return to the 3D Viewport, press `N`, and open the **blendixserial** tab.
-
-### 5.2 Build a Six-Channel Visualization
-
-1. Create or import six Blender objects in the same order as textile sensing points `C0–C5`.
-2. For each required object, use **Object → Apply → Scale** so the initial scale is `1, 1, 1`.
-3. In the BlendixSerial connection panel, select the Arduino `COM` port, set Baud Rate to `115200`, and click **Connect**.
-4. Set Mode to **Receive** and Data Format to **CSV (Fixed)**.
-5. Use **Add Object** to add the six objects in `C0–C5` order. Enable only **Scale Z** in each object's receive settings.
-6. Choose an Update Scene interval suitable for the computer, then click **Start**. Stretching an area of the textile should change the Z scale of its mapped 3D object.
-
-## 6. Serial Data Mapping
-
-The firmware writes nine values per sensor in the BlendixSerial CSV Fixed layout:
-
-```text
-Location X, Location Y, Location Z,
-Rotation X, Rotation Y, Rotation Z,
-Scale X,    Scale Y,    Scale Z
-```
-
-This implementation changes only the ninth value, `Scale Z`. Transform blocks for multiple objects are concatenated in the same order as the Receive object list, and the frame ends with a semicolon and newline.
-
-```text
-# One-object example: Scale Z = 1.375
-0,0,0,0,0,0,1,1,1.375;
-```
-
-The Blender object order, sensor channel order, and physical textile locations must use the same mapping table.
-
-## 7. Functional Validation
-
-| Test | Expected result |
-| --- | --- |
-| Stretch one channel | Only the corresponding Blender object changes significantly |
-| Return to rest | The object approaches its initial scale without large persistent drift |
-| Stretch several regions | Multiple objects update independently without channel swaps |
-| Run continuously for 10 minutes | Serial communication remains active and latency does not continuously accumulate |
-| Disconnect USB | Blender stops updating and can recover after reconnecting |
-| Repeat the same movement | The overall response is similar; differences are recorded and investigated |
-
-## 8. Troubleshooting
-
-| Problem | Checks |
-| --- | --- |
-| COM port is missing | Confirm that the USB cable supports data, the driver is installed, and Device Manager recognizes the board |
-| Blender cannot connect | Close Arduino Serial Monitor and verify the COM port and baud rate |
-| Objects do not move | Confirm Receive mode, CSV Fixed format, Start state, and Scale Z selection |
-| Channel order is wrong | Compare `C0–C5`, `SENSOR_COUNT`, and the Blender receive-object order |
-| Readings are noisy | Check common ground, solder joints, long-wire interference, sample count, and filter settings |
-| Reading remains at 0 or 1023 | Check the divider, open/shorted sensor, and fixed-resistor choice |
-| Stretch direction is reversed | Change the corresponding `INVERT[]` entry |
-| Visualization stutters | Lower the firmware frame rate, increase Update Scene delay, or reduce object count and mesh complexity |
-
-## 9. References and Acknowledgments
-
-- [Arduino Project | 3D Temperature Gauge with Blender and Arduino](https://www.youtube.com/watch?v=f5dibcekHPs&list=PLNgvH2WAd8PjuhDG4desShaxqB3BjRXQl): reference demonstration for sending Arduino sensor data into Blender.
-- [BlendixSerial Blender Add-on](https://electronicstree.com/blendixserial-addon/): installation, connection panel, send/receive modes, and communication-format documentation.
-- [blendixserial-arduino](https://github.com/electronicstree/blendixserial-arduino): optional Arduino-side serial communication library.
-
-This project applies the general Arduino-to-Blender serial visualization method to a multi-channel smart-textile prototype. HEXA-S textile geometry, channel mapping, calibration data, and 3D representation should be documented separately as original project work.
-
-## License
-
-Add a `LICENSE` file to the repository after selecting an open-source license for HEXA-S. The BlendixSerial Arduino library is distributed under GPL-3.0; copied or modified upstream code must comply with that license and retain attribution. The included starter firmware writes CSV directly and does not contain a copy of the upstream library, but the BlendixSerial protocol and tutorial should still be credited.
+HEXA-S is currently a design and engineering prototype, not an approved medical device. Work with real users requires appropriate ethics, consent, privacy, safety, and clinical oversight.
